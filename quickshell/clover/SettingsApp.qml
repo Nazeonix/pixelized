@@ -656,13 +656,35 @@ FloatingWindow {
                         delegate: SRow {
                             required property string modelData
                             label: Settings.presets[modelData].name
-                            desc: "Accent " + Settings.presets[modelData].accent
+                            desc: modelData === "wallpaper" ? "Colors taken from the current wallpaper with matugen." : "Accent " + Settings.presets[modelData].accent
                             Row {
                                 spacing: 10
-                                Rectangle { width: 26; height: 26; color: Settings.presets[modelData].accent }
+                                Rectangle { width: 26; height: 26; color: Settings.swatch(modelData) }
                                 SBtn { label: Settings.preset === modelData ? "Active" : "Apply"; onClicked: Settings.applyBundle(modelData) }
                             }
                         }
+                    }
+                }
+                SSection {
+                    title: "Wallpaper colors"
+                    SRow {
+                        label: "Palette style"
+                        desc: "How matugen builds the palette from the picture."
+                        SChoice {
+                            options: Settings.wpSchemeNames
+                            current: Math.max(0, Settings.wpSchemes.indexOf(Settings.wpScheme))
+                            onPicked: i => Settings.set("wpScheme", Settings.wpSchemes[i])
+                        }
+                    }
+                    SRow {
+                        label: "Status"
+                        desc: Settings.preset === "wallpaper" ? "Colors update by themselves when the wallpaper changes." : "Choose the Wallpaper preset above to use these colors."
+                        SVal { text: Settings.wpStatus !== "" ? Settings.wpStatus : (Settings.wp.accent !== undefined ? "Cached colors loaded" : "Not extracted yet") }
+                    }
+                    SRow {
+                        label: "Extract now"
+                        desc: "Reads the current wallpaper again. Needs matugen (paru -S matugen-bin)."
+                        SBtn { label: "Extract"; onClicked: Settings.refreshColors() }
                     }
                 }
                 SSection {

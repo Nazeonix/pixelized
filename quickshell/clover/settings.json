@@ -1,5 +1,5 @@
 {
-  "preset": "white",
+  "preset": "wallpaper",
   "clock24": true,
   "cat": true,
   "reduceMotion": false,
@@ -9,6 +9,7 @@
   "termCmd": "kitty",
   "filesCmd": "nautilus",
   "popupSec": 6,
+  "wpScheme": "scheme-neutral",
   "titlebars": true,
   "dnd": false
 }

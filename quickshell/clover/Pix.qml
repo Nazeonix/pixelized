@@ -24,7 +24,7 @@ Canvas {
             for (let x = 0; x < rows[y].length; x++) {
                 const ch = rows[y][x]
                 if (ch === ".") continue
-                const pc = palette[ch]
+                const pc = palette ? palette[ch] : undefined
                 c.fillStyle = pc !== undefined ? pc : (ch === "+" ? tone2 : tone)
                 c.fillRect(x * px, y * px, px, px)
             }
