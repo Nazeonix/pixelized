@@ -1,0 +1,14 @@
+{
+  "preset": "white",
+  "clock24": true,
+  "cat": true,
+  "reduceMotion": false,
+  "highContrast": false,
+  "pixelAvatar": true,
+  "userName": "",
+  "termCmd": "kitty",
+  "filesCmd": "nautilus",
+  "popupSec": 6,
+  "titlebars": true,
+  "dnd": false
+}

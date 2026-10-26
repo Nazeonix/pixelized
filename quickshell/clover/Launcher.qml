@@ -13,7 +13,7 @@ PanelWindow {
     readonly property bool open: Store.launcherOpen && Hyprland.focusedMonitor?.name === screen?.name
     readonly property int barH: 48     // taskbar height, kept clear so START still works
     readonly property int cols: 6
-    readonly property string user: Quickshell.env("USER") || "user"
+    readonly property string user: Settings.displayName
 
     property bool allMode: false
     property int sel: 0
@@ -430,6 +430,7 @@ PanelWindow {
             height: 46
 
             Item {
+                visible: Settings.pixelAvatar
                 anchors.verticalCenter: parent.verticalCenter
                 width: 34
                 height: 34
@@ -441,7 +442,7 @@ PanelWindow {
                 }
             }
             Mono {
-                x: 46
+                x: Settings.pixelAvatar ? 46 : 0
                 anchors.verticalCenter: parent.verticalCenter
                 text: win.user.toUpperCase()
                 font.pixelSize: 11

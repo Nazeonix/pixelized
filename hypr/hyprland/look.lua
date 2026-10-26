@@ -2,10 +2,10 @@
 -- Border colors live in colors.lua.
 hl.config({
     general = {
-        gaps_in  = 10,
-        gaps_out = 14,
+        gaps_in  = 4,
+        gaps_out = 8,
 
-        border_size = 4,
+        border_size = 1,
 
         resize_on_border = true,
         allow_tearing    = false,
@@ -14,7 +14,7 @@ hl.config({
     },
 
     decoration = {
-        rounding       = 2,
+        rounding       = 0,
         -- rounding_power = 2,
 
         active_opacity   = 1.0,

@@ -40,6 +40,14 @@ hl.layer_rule({
   no_anim = true,
 })
 
+-- Clover settings window floats in the middle of the screen
+hl.window_rule({
+    name  = "clover-settings",
+    match = { title = "^Clover .* Settings$" },
+    float = true,
+    center = true,
+})
+
 -- Always-floating windows (see floatlist.lua)
 for _, class in ipairs(floatlist.classes) do
     hl.window_rule({

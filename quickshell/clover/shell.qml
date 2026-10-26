@@ -31,6 +31,7 @@ ShellRoot {
     }
 
     TitleBars {}
+    SettingsApp {}
 
     IpcHandler {
         target: "wallpaper"
@@ -48,6 +49,7 @@ ShellRoot {
         function toggle(type: string): void { Store.toggleType(type) }
         function dock(type: string, corner: string): void { Store.dock(type, corner) }
         function launcher(): void { Store.launcherOpen = !Store.launcherOpen }
+        function settings(): void { Store.settingsOpen = !Store.settingsOpen }
         function titlebars(): void { Store.titlebars = !Store.titlebars }
         function start(): void { Store.startOpen = !Store.startOpen }
         function add(type: string): void { Store.add(type, Hyprland.focusedWorkspace?.id ?? 1) }

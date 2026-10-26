@@ -63,41 +63,60 @@ PanelWindow {
         "....#...."
     ]
 
-    readonly property var bottlePalette: ({
-        "A": "#f0f0f0", "e": "#2a2a30", "r": "#f00030", "y": "#f0c000", "g": "#48c018"
+    readonly property var tubePalette: ({
+        "A": "#f0f0f0", "e": "#2a2a30", "W": "#4a4a52", "t": "#9a9a96",
+        "r": "#f00030", "y": "#f0c000", "g": "#48c018",
+        "R": "#ff7088", "Y": "#fff070", "G": "#8ae868"      // lighter shades: glass glint + liquid surface
     })
 
-    // 9x14 pixel bottle: liquid fills bottom-up (red, yellow, green thirds), pixel bolt when charging
+    // 9x16 pixel test tube: liquid fills bottom-up (red, yellow, green), rim, rounded bottom,
+    // measuring ticks, glass glint, shiny liquid surface, pixel bolt when charging
     function batRows(pct, charging) {
         const t = [
-            "..AAAAA..",
-            "..AeeeA..",
-            "..AeeeA..",
-            ".AAeeeAA.",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
-            "AeeeeeeeA",
+            "AAAAAAAAA",
             ".AeeeeeA.",
-            "..AAAAA.."
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            ".AeeeeeA.",
+            "..AeeeA..",
+            "...AAA..."
         ]
-        const slots = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]     // bottom -> top
-        const n = pct > 0 ? Math.ceil(pct / 100 * slots.length) : 0
+        const rowsOf = []                                   // slot rows, bottom -> top
+        for (let y = 14; y >= 1; y--) rowsOf.push(y)
+        const n = pct > 0 ? Math.ceil(pct / 100 * rowsOf.length) : 0
         const r = t.map(s => s.split(""))
-        slots.forEach((y, i) => {
+        rowsOf.forEach((y, i) => {
             if (i >= n) return
-            const ch = i < 4 ? "r" : (i < 8 ? "y" : "g")
+            const ch = i < 5 ? "r" : (i < 10 ? "y" : "g")
             for (let x = 0; x < 9; x++) if (r[y][x] === "e") r[y][x] = ch
         })
+        const light = { r: "R", y: "Y", g: "G", e: "W" }
+        // liquid surface
+        if (n > 0) {
+            const ys = rowsOf[n - 1]
+            for (let x = 0; x < 9; x++) if (light[r[ys][x]] && r[ys][x] !== "e") r[ys][x] = light[r[ys][x]]
+        }
+        // glass glint (left side)
+        for (let y = 2; y <= 8; y++) if (light[r[y][3]]) r[y][3] = light[r[y][3]]
+        // measuring ticks at ~25 / 50 / 75 %
+        for (const i of [3, 6, 10]) {
+            const y = rowsOf[i]
+            if (r[y][2] === "e" || r[y][2] === "r" || r[y][2] === "y" || r[y][2] === "g" || r[y][2] === "W") r[y][2] = "t"
+        }
         if (charging) {
-            const bolt = ["..++", ".++.", "++++", "..++", ".++.", "++.."]
+            const bolt = ["..+", ".+.", "+++", ".+.", "+.."]
             for (let i = 0; i < bolt.length; i++)
                 for (let j = 0; j < bolt[i].length; j++)
-                    if (bolt[i][j] === "+") r[5 + i][2 + j] = "+"
+                    if (bolt[i][j] === "+") r[5 + i][3 + j] = "+"
         }
         return r.map(a => a.join(""))
     }
@@ -259,8 +278,8 @@ PanelWindow {
             if (win._tot > 0 && tot > win._tot) {
                 const u = 1 - (idle - win._idle) / (tot - win._tot)
                 win.cpu = win.cpu * 0.5 + Math.max(0, Math.min(1, u)) * 0.5
-                if (win.cpu > 0.12) win.catAwake = true
-                else if (win.cpu < 0.06) win.catAwake = false
+                if (win.cpu > 0.12 && !Settings.reduceMotion) win.catAwake = true
+                else if (win.cpu < 0.06 || Settings.reduceMotion) win.catAwake = false
             }
             win._tot = tot
             win._idle = idle
@@ -270,7 +289,7 @@ PanelWindow {
     Timer {
         interval: 900
         repeat: true
-        running: !win.catAwake
+        running: !win.catAwake && !Settings.reduceMotion
         onTriggered: win.sleepFrame = (win.sleepFrame + 1) % 2
     }
     Timer {
@@ -278,6 +297,106 @@ PanelWindow {
         repeat: true
         running: win.catAwake
         onTriggered: win.catFrame = (win.catFrame + 1) % win.catRun.length
+    }
+
+    // ---- workspace discs: bright + halo = chosen, star = other workspace with windows, cracked = empty ----
+    readonly property var discPlain: [
+            "...............",
+            "...............",
+            "....oooo.......",
+            "..oo2223oo.....",
+            ".o22223333o....",
+            ".o22211333o....",
+            "o2221..1344o...",
+            "o221....144o...",
+            "o231....144o...",
+            "o3331..1445o...",
+            ".o33311445o....",
+            ".o33444455o....",
+            "..oo4445oo....."
+        ]
+    readonly property var discStar: [
+            "............y..",
+            "...........yYy.",
+            "....oooo..yYYYy",
+            "..oo2223...yYy.",
+            ".o22223.....y..",
+            ".o22211........",
+            "o2221..1..4o...",
+            "o221....144o...",
+            "o231....144o...",
+            "o3331..1445o...",
+            ".o33311445o....",
+            ".o33444455o....",
+            "..oo4445oo....."
+        ]
+    readonly property var discBroken: [
+            "...............",
+            "...............",
+            "....oooo.......",
+            "..oo3334oc.....",
+            ".o333344c4o....",
+            ".o33333cc4o....",
+            "o3333..c455o...",
+            "o333....355o...",
+            "o343....355o...",
+            "o44.c..3555o...",
+            ".o...33555o....",
+            "....555555o....",
+            "...o5555oo....."
+        ]
+    readonly property var discHalo: [
+            "......#.#.......",
+            ".....#.#.#.#....",
+            "....#.......#...",
+            ".............#..",
+            "..#...........#.",
+            ".#..............",
+            "#.............#.",
+            ".#.............#",
+            "#.............#.",
+            ".#.............#",
+            "..............#.",
+            ".#...........#..",
+            "..#.............",
+            "...#.......#....",
+            "....#.#.#.#.....",
+            ".......#.#......"
+        ]
+    readonly property var discPalette: ({
+        "o": "#3a3a40", "1": "#f2f2f4", "2": "#cfcfd4", "3": "#a4a4ac", "4": "#7a7a84", "5": "#55555e",
+        "y": "#ffd23f", "Y": "#fff3b0", "c": "#18181c"
+    })
+    readonly property var discBright: ({
+        "o": Theme.accent, "1": "#ffffff", "2": "#f0f0f4", "3": "#d8d8de", "4": "#b8b8c0", "5": "#98989f"
+    })
+    readonly property int curWs: {
+        const m = Hyprland.monitorFor(win.screen)
+        if (m && m.activeWorkspace) return m.activeWorkspace.id
+        return Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+    }
+    readonly property var wsIds: {
+        const ids = [1, 2, 3, 4, 5]
+        const tls = Hyprland.toplevels.values
+        for (let i = 0; i < tls.length; i++) {
+            const w = tls[i].workspace
+            if (w && w.id > 5 && ids.indexOf(w.id) < 0) ids.push(w.id)
+        }
+        if (curWs > 5 && ids.indexOf(curWs) < 0) ids.push(curWs)
+        ids.sort((a, b) => a - b)
+        return ids
+    }
+    function wsCount(id) {
+        const tls = Hyprland.toplevels.values
+        let n = 0
+        for (let i = 0; i < tls.length; i++) {
+            const w = tls[i].workspace
+            if (w && w.id === id) n++
+        }
+        return n
+    }
+    function gotoWs(target) {
+        Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = " + target + " })"])
     }
 
     function layoutCode(name) {
@@ -390,6 +509,101 @@ PanelWindow {
         }
     }
 
+    // ---- workspace discs ----
+    Row {
+        id: discs
+        anchors { left: sep.right; leftMargin: 10; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
+        spacing: 2
+
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => win.gotoWs(event.angleDelta.y > 0 ? '"e-1"' : '"e+1"')
+        }
+
+        Repeater {
+            model: win.wsIds
+            delegate: Item {
+                id: dsc
+                required property int modelData
+                readonly property bool cur: win.curWs === modelData
+                readonly property int n: win.wsCount(modelData)
+                width: 38
+                height: 38
+
+                Rectangle { anchors.fill: parent; color: da.containsMouse ? "#14ffffff" : "transparent" }
+
+                // halo around the chosen disc
+                Pix {
+                    id: halo
+                    visible: dsc.cur
+                    x: 0
+                    y: 4
+                    rows: win.discHalo
+                    tone: Theme.accent
+                    opacity: 0.55
+
+                    SequentialAnimation {
+                        running: dsc.cur && !Settings.reduceMotion
+                        loops: Animation.Infinite
+                        NumberAnimation { target: halo; property: "opacity"; from: 0.25; to: 0.9; duration: 900; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: halo; property: "opacity"; to: 0.25; duration: 900; easing.type: Easing.InOutSine }
+                    }
+                }
+
+                Pix {
+                    x: 4
+                    y: 6
+                    rows: dsc.cur ? win.discPlain : (dsc.n > 0 ? win.discStar : win.discBroken)
+                    palette: dsc.cur ? win.discBright : win.discPalette
+                }
+
+                // shine on the chosen disc
+                Repeater {
+                    model: (dsc.cur && !Settings.reduceMotion) ? 2 : 0
+                    Pix {
+                        id: gl
+                        required property int index
+                        x: index === 0 ? 9 : 22
+                        y: index === 0 ? 11 : 26
+                        px: 1
+                        rows: [".#.", "###", ".#."]
+                        tone: "#ffffff"
+                        opacity: 0
+
+                        SequentialAnimation {
+                            running: true
+                            PauseAnimation { duration: gl.index * 700 }
+                            SequentialAnimation {
+                                loops: Animation.Infinite
+                                NumberAnimation { target: gl; property: "opacity"; from: 0; to: 1; duration: 220 }
+                                PauseAnimation { duration: 140 }
+                                NumberAnimation { target: gl; property: "opacity"; to: 0; duration: 320 }
+                                PauseAnimation { duration: 1100 }
+                            }
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: da
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: win.gotoWs(dsc.modelData)
+                }
+            }
+        }
+    }
+
+    Column {
+        id: sep2
+        anchors { left: discs.right; leftMargin: 8; verticalCenter: parent.verticalCenter }
+        spacing: 2
+        Repeater {
+            model: 5
+            Rectangle { width: 2; height: 2; color: Theme.dim }
+        }
+    }
+
     // ---- tray + status + clock (sunken) ----
     Item {
         id: tray
@@ -434,6 +648,7 @@ PanelWindow {
 
             // cpu cat
             Item {
+                visible: Settings.cat
                 anchors.verticalCenter: parent.verticalCenter
                 width: cp.width
                 height: cp.height
@@ -451,10 +666,10 @@ PanelWindow {
                     rows: ["###", ".#.", "###"]
                     tone: "#f5f5f5"
                     opacity: 0
-                    visible: !win.catAwake
+                    visible: !win.catAwake && !Settings.reduceMotion
 
                     SequentialAnimation {
-                        running: !win.catAwake
+                        running: !win.catAwake && !Settings.reduceMotion
                         loops: Animation.Infinite
                         ParallelAnimation {
                             NumberAnimation { target: zz; property: "y"; from: 0; to: -9; duration: 2400 }
@@ -535,7 +750,7 @@ PanelWindow {
                 }
             }
 
-            // battery bottle: liquid fills bottom-up, bolt when charging,
+            // battery test tube: liquid fills bottom-up, bolt when charging,
             // grey steam when discharging, twinkling sparks around the glass
             Row {
                 visible: win.hasBat
@@ -550,7 +765,7 @@ PanelWindow {
                     Pix {
                         id: bp
                         rows: win.batRows(win.batPct, win.charging)
-                        palette: win.bottlePalette
+                        palette: win.tubePalette
                         tone2: "#ffffff"
                     }
 
@@ -560,7 +775,7 @@ PanelWindow {
                         Rectangle {
                             id: puff
                             required property int index
-                            visible: win.discharging
+                            visible: win.discharging && !Settings.reduceMotion
                             x: 5 + index * 3
                             y: -3
                             width: 2
@@ -569,7 +784,7 @@ PanelWindow {
                             opacity: 0
 
                             SequentialAnimation {
-                                running: win.discharging
+                                running: win.discharging && !Settings.reduceMotion
                                 PauseAnimation { duration: puff.index * 600 }
                                 SequentialAnimation {
                                     loops: Animation.Infinite
@@ -587,11 +802,11 @@ PanelWindow {
 
                     // sparks (more of them while charging)
                     Repeater {
-                        model: win.charging ? 6 : 3
+                        model: Settings.reduceMotion ? 0 : (win.charging ? 6 : 3)
                         Pix {
                             id: sp
                             required property int index
-                            readonly property var spots: [[-6, 6], [20, 2], [-5, 18], [20, 14], [-3, -1], [19, 24]]
+                            readonly property var spots: [[-6, 6], [20, 3], [-5, 19], [21, 15], [-4, -2], [20, 27]]
                             x: spots[index][0]
                             y: spots[index][1]
                             px: 1
@@ -672,7 +887,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    Mono { text: Qt.formatDateTime(clk.date, "HH"); font.pixelSize: 12 }
+                    Mono { text: Qt.formatDateTime(clk.date, Settings.clock24 ? "HH" : "h"); font.pixelSize: 12 }
                     Mono { text: ":"; color: Theme.accent; font.pixelSize: 12 }
                     Mono { text: Qt.formatDateTime(clk.date, "mm"); font.pixelSize: 12 }
                 }
@@ -691,7 +906,7 @@ PanelWindow {
     Item {
         id: tasks
         anchors {
-            left: sep.right; leftMargin: 10
+            left: sep2.right; leftMargin: 10
             right: tray.left; rightMargin: 8
             top: parent.top; bottom: parent.bottom
         }

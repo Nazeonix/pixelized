@@ -11,7 +11,7 @@ PanelWindow {
     readonly property bool open: Store.startOpen && Hyprland.focusedMonitor?.name === screen?.name
     readonly property int barH: 48
     readonly property int rowH: 30
-    readonly property string user: Quickshell.env("USER") || "user"
+    readonly property string user: Settings.displayName
 
     property int cur: 0
     property string armed: ""     // power action waiting for a second click
@@ -25,6 +25,8 @@ PanelWindow {
         { icon: "gear",   label: "Edit desktop", hint: "Super+A",       act: "edit" },
         { icon: "eye",    label: "Hide widgets", hint: "Super+H",       act: "hide" },
         { icon: "note",   label: "Notes",        hint: "Super+N",       act: "notes" },
+        { sep: true },
+        { icon: "sliders", label: "Settings",    hint: "",              act: "settings" },
         { sep: true },
         { icon: "lock",    label: "Lock",        hint: "Super+L",       act: "lock" },
         { icon: "logout",  label: "Log out",     hint: "",              act: "logout",   confirm: true },
@@ -57,8 +59,9 @@ PanelWindow {
         Store.startOpen = false
         switch (it.act) {
         case "programs": Store.launcherOpen = true; break
-        case "term":     Quickshell.execDetached(["kitty"]); break
-        case "files":    Quickshell.execDetached(["nautilus"]); break
+        case "term":     Quickshell.execDetached(Settings.termCmd.trim().split(/\s+/)); break
+        case "files":    Quickshell.execDetached(Settings.filesCmd.trim().split(/\s+/)); break
+        case "settings": Store.settingsOpen = true; break
         case "wall":     Wallpaper.random(); break
         case "edit":     Store.editing = true; break
         case "hide":     Store.hidden = !Store.hidden; break
@@ -129,6 +132,7 @@ PanelWindow {
             height: 46
 
             Item {
+                visible: Settings.pixelAvatar
                 x: 8
                 anchors.verticalCenter: parent.verticalCenter
                 width: 34
@@ -141,7 +145,7 @@ PanelWindow {
                 }
             }
             Mono {
-                x: 52
+                x: Settings.pixelAvatar ? 52 : 12
                 anchors.verticalCenter: parent.verticalCenter
                 text: win.user.toUpperCase()
                 font.pixelSize: 12

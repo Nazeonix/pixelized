@@ -36,7 +36,7 @@ PanelWindow {
                 id: card
                 required property var modelData        // Notification
                 readonly property bool crit: modelData.urgency === NotificationUrgency.Critical
-                readonly property int total: modelData.expireTimeout > 0 ? modelData.expireTimeout * 1000 : (crit ? 0 : 6000)
+                readonly property int total: modelData.expireTimeout > 0 ? modelData.expireTimeout * 1000 : (crit ? 0 : Settings.popupSec * 1000)
                 property int remaining: total
                 readonly property var acts: Array.from(modelData.actions).filter(a => a.identifier !== "default")
 

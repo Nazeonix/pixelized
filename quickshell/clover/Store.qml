@@ -10,6 +10,8 @@ Singleton {
     property bool editing: false
     property bool hidden: false     // focus mode
     property bool launcherOpen: false
+    property bool settingsOpen: false      // settings window
+    property string settingsQuery: ""     // settings search text (lowercase)
     property bool notifCenter: false       // notification history panel
     property bool titlebars: true          // pixel window titlebars
     property bool startOpen: false          // START button menu
@@ -24,6 +26,11 @@ Singleton {
         const u = Object.assign({}, appUsage)
         u[id] = (u[id] || 0) + 1
         appUsage = u
+        appsTimer.restart()
+    }
+    function clearApps() {
+        appPinned = []
+        appUsage = {}
         appsTimer.restart()
     }
     function togglePin(id) {

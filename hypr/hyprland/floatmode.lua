@@ -15,8 +15,8 @@
 local floatlist = require("hyprland.floatlist")
 
 local STATE_FILE   = (os.getenv("XDG_RUNTIME_DIR") or "/tmp") .. "/hypr-floatmode"
-local BORDER_FLOAT = 4    -- border while floating mode is on (nil = don't touch borders)
-local BORDER_TILED = 4    -- must match general.border_size in look.lua
+local BORDER_FLOAT = 1    -- border while floating mode is on (nil = don't touch borders)
+local BORDER_TILED = 1    -- must match general.border_size in look.lua
 local MOVE_STEP    = 40
 local SIZE_STEP    = 40
 
