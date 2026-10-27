@@ -457,7 +457,7 @@ PanelWindow {
     Item {
         id: start
         anchors { left: parent.left; leftMargin: 6; verticalCenter: parent.verticalCenter; verticalCenterOffset: 1 }
-        width: 100
+        width: 108
         height: 34
 
         Rectangle { x: 2; y: 2; width: parent.width; height: parent.height; color: "#66000000" }   // hard pixel shadow
@@ -468,19 +468,57 @@ PanelWindow {
             fill: (Store.startOpen || Store.launcherOpen) ? "#26ffffff" : sa.containsMouse ? "#14ffffff" : Theme.bg
             edge: Theme.accent
         }
-        // pixel clover: 2x2 blocks
+        // pixel star: four tapered points, white (top) to grey (bottom), with a twinkle
         Item {
+            id: starBox
             x: 10
-            width: 11
-            height: 11
             anchors.verticalCenter: parent.verticalCenter
-            Rectangle { x: 0; y: 0; width: 5; height: 5; color: Theme.accent }
-            Rectangle { x: 6; y: 0; width: 5; height: 5; color: Theme.accentDim }
-            Rectangle { x: 0; y: 6; width: 5; height: 5; color: Theme.accentDim }
-            Rectangle { x: 6; y: 6; width: 5; height: 5; color: Theme.accent }
+            width: 26
+            height: 30
+
+            Pix {
+                id: starPix
+                rows: [
+                    "......2......",
+                    "......2......",
+                    ".....112....2",
+                    ".....112..112",
+                    "....11111112.",
+                    "....1111112..",
+                    "...1222223...",
+                    "...1222223...",
+                    "..12222223...",
+                    ".24444334....",
+                    "34....234....",
+                    "......334....",
+                    ".......44....",
+                    "........4....",
+                    "........4...."
+                ]
+                palette: ({ "1": "#ffffff", "2": "#dedee4", "3": "#a8a8b2", "4": "#707080" })
+                opacity: sa.containsMouse ? 1 : 0.92
+            }
+            Pix {
+                id: twinkle
+                x: 21
+                y: 1
+                px: 1
+                rows: [".#.", "###", ".#."]
+                tone: "#ffffff"
+                opacity: 0
+
+                SequentialAnimation {
+                    running: !Settings.reduceMotion
+                    loops: Animation.Infinite
+                    PauseAnimation { duration: 1800 }
+                    NumberAnimation { target: twinkle; property: "opacity"; from: 0; to: 1; duration: 200 }
+                    PauseAnimation { duration: 160 }
+                    NumberAnimation { target: twinkle; property: "opacity"; to: 0; duration: 320 }
+                }
+            }
         }
         Mono {
-            x: 30
+            x: 40
             anchors.verticalCenter: parent.verticalCenter
             text: "START"
             font.pixelSize: 11

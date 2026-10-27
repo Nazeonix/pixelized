@@ -9,7 +9,7 @@
   "termCmd": "kitty",
   "filesCmd": "nautilus",
   "popupSec": 6,
-  "wpScheme": "scheme-neutral",
+  "wpScheme": "scheme-tonal-spot",
   "titlebars": true,
   "dnd": false
 }
