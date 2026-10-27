@@ -684,6 +684,16 @@ PanelWindow {
                 }
             }
 
+            // keep-awake (idle manager paused): click to turn off
+            Item {
+                visible: Settings.idleKeepAwake
+                anchors.verticalCenter: parent.verticalCenter
+                width: mugPix.width
+                height: mugPix.height
+                Pix { id: mugPix; rows: Icons.bm.mug; tone: Theme.accent }
+                MouseArea { anchors.fill: parent; onClicked: Settings.idleKeepAwake = false }
+            }
+
             // cpu cat
             Item {
                 visible: Settings.cat

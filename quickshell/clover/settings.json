@@ -10,6 +10,18 @@
   "filesCmd": "nautilus",
   "popupSec": 6,
   "wpScheme": "scheme-tonal-spot",
+  "idleEnabled": false,
+  "idleDimSec": 300,
+  "idleDimLevel": 15,
+  "idleLockSec": 900,
+  "idleOffSec": 1200,
+  "idleSuspendSec": 0,
+  "idleRespectInhibit": false,
+  "idleLockBeforeSuspend": true,
+  "lockCmd": "qs -c lock",
+  "idleOffCmd": "hyprctl dispatch dpms off",
+  "idleOnCmd": "hyprctl dispatch dpms on",
+  "suspendCmd": "systemctl suspend",
   "titlebars": true,
   "dnd": false
 }

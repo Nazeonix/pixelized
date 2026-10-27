@@ -24,6 +24,21 @@ Singleton {
     property int popupSec: 6
     property string wpScheme: "scheme-tonal-spot"
 
+    // ---- idle manager (Idle.qml) ----
+    property bool idleEnabled: true
+    property bool idleKeepAwake: false          // session only, not saved
+    property int idleDimSec: 120                // 0 = off
+    property int idleDimLevel: 15               // percent brightness while dimmed
+    property int idleLockSec: 300
+    property int idleOffSec: 360
+    property int idleSuspendSec: 0
+    property bool idleRespectInhibit: true
+    property bool idleLockBeforeSuspend: true
+    property string lockCmd: "qs -c lock"
+    property string idleOffCmd: "hyprctl dispatch dpms off"
+    property string idleOnCmd: "hyprctl dispatch dpms on"
+    property string suspendCmd: "systemctl suspend"
+
     // ---- colors taken from the wallpaper (cached in wallpaper-colors.json) ----
     property var wp: ({})
     property string wpStatus: ""
@@ -45,7 +60,7 @@ Singleton {
     readonly property string displayName: userName !== "" ? userName : (Quickshell.env("USER") || "user")
 
     // keys that are stored in the file
-    readonly property var keys: ["preset", "clock24", "cat", "reduceMotion", "highContrast", "pixelAvatar", "userName", "termCmd", "filesCmd", "popupSec", "wpScheme"]
+    readonly property var keys: ["preset", "clock24", "cat", "reduceMotion", "highContrast", "pixelAvatar", "userName", "termCmd", "filesCmd", "popupSec", "wpScheme", "idleEnabled", "idleDimSec", "idleDimLevel", "idleLockSec", "idleOffSec", "idleSuspendSec", "idleRespectInhibit", "idleLockBeforeSuspend", "lockCmd", "idleOffCmd", "idleOnCmd", "suspendCmd"]
 
     function swatch(id) {
         if (id === "wallpaper" && wp.accent !== undefined) return wp.accent
@@ -73,6 +88,9 @@ Singleton {
         preset = "orange"; clock24 = true; cat = true; reduceMotion = false; highContrast = false
         pixelAvatar = true; userName = ""; termCmd = "kitty"; filesCmd = "nautilus"; popupSec = 6
         wpScheme = "scheme-tonal-spot"
+        idleEnabled = true; idleDimSec = 120; idleDimLevel = 15; idleLockSec = 300; idleOffSec = 360; idleSuspendSec = 0
+        idleRespectInhibit = true; idleLockBeforeSuspend = true
+        lockCmd = "qs -c lock"; idleOffCmd = "hyprctl dispatch dpms off"; idleOnCmd = "hyprctl dispatch dpms on"; suspendCmd = "systemctl suspend"
         Store.titlebars = true
         Notifs.dnd = false
         save()

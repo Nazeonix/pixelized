@@ -26,6 +26,7 @@ FloatingWindow {
         { id: "presets",       label: "Presets",        icon: "sparkle" },
         { id: "system",        label: "System",         icon: "chip" },
         { id: "devices",       label: "Devices",        icon: "mouse" },
+        { id: "power",         label: "Power & idle",   icon: "power" },
         { id: "network",       label: "Network",        icon: "wifi" },
         { id: "personal",      label: "Personalization", icon: "brush" },
         { id: "desktop",       label: "Desktop",        icon: "grid" },
@@ -104,6 +105,16 @@ FloatingWindow {
         fn()
     }
     Timer { id: armTimer; interval: 3000; onTriggered: win.armed = "" }
+
+    function fmt(sec) {
+        if (sec <= 0) return "Off"
+        if (sec < 60) return sec + " s"
+        const m = sec / 60
+        if (m < 60) return (m % 1 === 0 ? m : m.toFixed(1)) + " min"
+        const h = m / 60
+        return (h % 1 === 0 ? h : h.toFixed(1)) + " h"
+    }
+    function idle(fn) { Quickshell.execDetached(["qs", "-c", "clover", "ipc", "call", "idle", fn]) }
 
     function hypr(key, value) { Quickshell.execDetached(["hyprctl", "keyword", key, String(value)]) }
 
@@ -377,8 +388,9 @@ FloatingWindow {
         property real value: 0          // 0..1
         property real max: 100
         property string suffix: "%"
+        property string readout: ""       // overrides the number shown on the right
         signal moved(real v)
-        width: 250
+        width: 270
         height: 26
 
         Bevel { x: 0; y: 8; width: 190; height: 10; down: true; fill: "#59000000" }
@@ -387,7 +399,7 @@ FloatingWindow {
         Mono {
             x: 202
             anchors.verticalCenter: parent.verticalCenter
-            text: Math.round(sl.value * sl.max) + sl.suffix
+            text: sl.readout !== "" ? sl.readout : Math.round(sl.value * sl.max) + sl.suffix
             font.pixelSize: 10
         }
         MouseArea {
@@ -777,6 +789,103 @@ FloatingWindow {
                         label: "Switch layout"
                         desc: "Go to the next keyboard layout."
                         SBtn { label: "Next layout"; onClicked: { Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"]); kbTimer.restart() } }
+                    }
+                }
+            }
+
+            // ================= POWER & IDLE =================
+            Column {
+                width: parent.width
+                spacing: 14
+                visible: win.searching || win.page === "power"
+
+                SSection {
+                    title: "Idle manager"
+                    SRow {
+                        label: "Idle manager"
+                        desc: "Dims, locks, turns the screen off and suspends after you stop using the computer. Order: dim, lock, screen off, suspend."
+                        SToggle { checked: Settings.idleEnabled; onToggled: v => Settings.set("idleEnabled", v) }
+                    }
+                    SRow {
+                        label: "Keep awake"
+                        desc: "Pause every idle action until you switch this off. Not saved between sessions."
+                        SToggle { checked: Settings.idleKeepAwake; onToggled: v => Settings.idleKeepAwake = v }
+                    }
+                    SRow {
+                        label: "Respect inhibitors"
+                        desc: "Do nothing while a video plays or an app asks the system to stay awake."
+                        SToggle { checked: Settings.idleRespectInhibit; onToggled: v => Settings.set("idleRespectInhibit", v) }
+                    }
+                }
+                SSection {
+                    title: "Timers"
+                    SRow {
+                        label: "Dim screen after"
+                        desc: "Counted from your last activity. Off = never."
+                        SSlider { value: Settings.idleDimSec / 600; readout: win.fmt(Settings.idleDimSec); onMoved: v => Settings.set("idleDimSec", Math.round(v * 20) * 30) }
+                    }
+                    SRow {
+                        label: "Dim level"
+                        desc: "Brightness while the screen is dimmed."
+                        SSlider { value: (Settings.idleDimLevel - 5) / 55; readout: Settings.idleDimLevel + "%"; onMoved: v => Settings.set("idleDimLevel", Math.round(5 + v * 55)) }
+                    }
+                    SRow {
+                        label: "Lock after"
+                        desc: "Starts the lock screen."
+                        SSlider { value: Settings.idleLockSec / 3600; readout: win.fmt(Settings.idleLockSec); onMoved: v => Settings.set("idleLockSec", Math.round(v * 60) * 60) }
+                    }
+                    SRow {
+                        label: "Screen off after"
+                        desc: "Turns the display off; any movement turns it back on."
+                        SSlider { value: Settings.idleOffSec / 3600; readout: win.fmt(Settings.idleOffSec); onMoved: v => Settings.set("idleOffSec", Math.round(v * 60) * 60) }
+                    }
+                    SRow {
+                        label: "Suspend after"
+                        desc: "Puts the computer to sleep."
+                        SSlider { value: Settings.idleSuspendSec / 7200; readout: win.fmt(Settings.idleSuspendSec); onMoved: v => Settings.set("idleSuspendSec", Math.round(v * 24) * 300) }
+                    }
+                    SRow {
+                        label: "Lock before suspend"
+                        desc: "Starts the lock screen first so you wake up to a locked session."
+                        SToggle { checked: Settings.idleLockBeforeSuspend; onToggled: v => Settings.set("idleLockBeforeSuspend", v) }
+                    }
+                }
+                SSection {
+                    title: "Commands"
+                    SRow {
+                        label: "Lock command"
+                        desc: "Run by the lock timer and the Lock buttons."
+                        SText { text: Settings.lockCmd; placeholder: "qs -c lock"; onEdited: v => Settings.set("lockCmd", v.trim()) }
+                    }
+                    SRow {
+                        label: "Screen off command"
+                        desc: "Run when the screen-off timer fires."
+                        SText { text: Settings.idleOffCmd; placeholder: "hyprctl dispatch dpms off"; onEdited: v => Settings.set("idleOffCmd", v.trim()) }
+                    }
+                    SRow {
+                        label: "Screen on command"
+                        desc: "Run at the first movement after the screen turned off."
+                        SText { text: Settings.idleOnCmd; placeholder: "hyprctl dispatch dpms on"; onEdited: v => Settings.set("idleOnCmd", v.trim()) }
+                    }
+                    SRow {
+                        label: "Suspend command"
+                        SText { text: Settings.suspendCmd; placeholder: "systemctl suspend"; onEdited: v => Settings.set("suspendCmd", v.trim()) }
+                    }
+                }
+                SSection {
+                    title: "Test"
+                    SRow {
+                        label: "Lock now"
+                        SBtn { label: "Lock"; onClicked: win.idle("lock") }
+                    }
+                    SRow {
+                        label: "Dim preview"
+                        desc: "Dims the screen for 3 seconds."
+                        SBtn { label: "Test dim"; onClicked: win.idle("dimtest") }
+                    }
+                    SRow {
+                        label: "Suspend now"
+                        SBtn { label: win.armed === "suspend" ? "Click again" : "Suspend"; danger: true; onClicked: win.confirm("suspend", () => win.idle("suspend")) }
                     }
                 }
             }

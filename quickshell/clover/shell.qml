@@ -31,6 +31,7 @@ ShellRoot {
     }
 
     TitleBars {}
+    Idle { id: idle }
     SettingsApp {}
 
     IpcHandler {
@@ -53,6 +54,14 @@ ShellRoot {
         function titlebars(): void { Store.titlebars = !Store.titlebars }
         function start(): void { Store.startOpen = !Store.startOpen }
         function add(type: string): void { Store.add(type, Hyprland.focusedWorkspace?.id ?? 1) }
+    }
+
+    IpcHandler {
+        target: "idle"
+        function toggle(): void { Settings.idleKeepAwake = !Settings.idleKeepAwake }
+        function lock(): void { idle.lockNow() }
+        function suspend(): void { idle.suspendNow() }
+        function dimtest(): void { idle.dimTest() }
     }
 
     IpcHandler {
