@@ -114,6 +114,17 @@ FloatingWindow {
         const h = m / 60
         return (h % 1 === 0 ? h : h.toFixed(1)) + " h"
     }
+    function setBat(i, v) {
+        let a = Settings.batLevel1, b = Settings.batLevel2, c = Settings.batLevel3
+        if (i === 1) a = v; else if (i === 2) b = v; else c = v
+        if (b >= a) b = a - 1
+        if (c >= b) c = b - 1
+        if (c < 1) { c = 1; if (b < 2) b = 2; if (a < 3) a = 3 }
+        Settings.set("batLevel1", a)
+        Settings.set("batLevel2", b)
+        Settings.set("batLevel3", c)
+    }
+    function battery(level) { Quickshell.execDetached(["qs", "-c", "clover", "ipc", "call", "battery", "test", String(level)]) }
     function idle(fn) { Quickshell.execDetached(["qs", "-c", "clover", "ipc", "call", "idle", fn]) }
 
     function hypr(key, value) { Quickshell.execDetached(["hyprctl", "keyword", key, String(value)]) }
@@ -703,12 +714,12 @@ FloatingWindow {
                     title: "Bundles"
                     SRow {
                         label: "Minimal"
-                        desc: "No cat, no titlebars, reduced motion."
+                        desc: "No gauge, no titlebars, reduced motion."
                         SBtn { label: "Apply"; onClicked: Settings.applyBundle("minimal") }
                     }
                     SRow {
                         label: "Full"
-                        desc: "Cat, titlebars and all effects."
+                        desc: "Gauge, titlebars and all effects."
                         SBtn { label: "Apply"; onClicked: Settings.applyBundle("full") }
                     }
                 }
@@ -851,6 +862,39 @@ FloatingWindow {
                     }
                 }
                 SSection {
+                    title: "Low battery"
+                    SRow {
+                        label: "Battery warnings"
+                        desc: "Pixel alert when the battery runs low while unplugged. Critical repeats every 2 minutes."
+                        SToggle { checked: Settings.batAlerts; onToggled: v => Settings.set("batAlerts", v) }
+                    }
+                    SRow {
+                        label: "Low"
+                        desc: "First warning. Hides by itself."
+                        SSlider { value: (Settings.batLevel1 - 10) / 40; readout: Settings.batLevel1 + "%"; onMoved: v => win.setBat(1, Math.round(10 + v * 40)) }
+                    }
+                    SRow {
+                        label: "Very low"
+                        desc: "Second warning, blinks."
+                        SSlider { value: (Settings.batLevel2 - 5) / 25; readout: Settings.batLevel2 + "%"; onMoved: v => win.setBat(2, Math.round(5 + v * 25)) }
+                    }
+                    SRow {
+                        label: "Critical"
+                        desc: "Last warning. Stays until you dismiss it or plug in."
+                        SSlider { value: (Settings.batLevel3 - 1) / 14; readout: Settings.batLevel3 + "%"; onMoved: v => win.setBat(3, Math.round(1 + v * 14)) }
+                    }
+                    SRow {
+                        label: "Preview"
+                        desc: "Show each warning once."
+                        Row {
+                            spacing: 6
+                            SBtn { label: "Low"; onClicked: win.battery(1) }
+                            SBtn { label: "Very low"; onClicked: win.battery(2) }
+                            SBtn { label: "Critical"; onClicked: win.battery(3) }
+                        }
+                    }
+                }
+                SSection {
                     title: "Commands"
                     SRow {
                         label: "Lock command"
@@ -958,7 +1002,7 @@ FloatingWindow {
                     title: "Look"
                     SRow {
                         label: "Accent color"
-                        desc: "Used for highlights, borders and the cat's collar."
+                        desc: "Used for highlights, borders and the speedometer's red zone."
                         SChoice {
                             options: Settings.presetIds.map(id => Settings.presets[id].name)
                             current: Settings.presetIds.indexOf(Settings.preset)
@@ -971,9 +1015,9 @@ FloatingWindow {
                         SChoice { options: ["24 hour", "12 hour"]; current: Settings.clock24 ? 0 : 1; onPicked: i => Settings.set("clock24", i === 0) }
                     }
                     SRow {
-                        label: "CPU cat"
-                        desc: "Pixel cat in the taskbar: sleeps when idle, runs when busy."
-                        SToggle { checked: Settings.cat; onToggled: v => Settings.set("cat", v) }
+                        label: "CPU speedometer"
+                        desc: "Pixel gauge in the taskbar: the needle follows CPU load."
+                        SToggle { checked: Settings.cpuGauge; onToggled: v => Settings.set("cpuGauge", v) }
                     }
                     SRow {
                         label: "Window titlebars"
@@ -1192,7 +1236,7 @@ FloatingWindow {
                     title: "Display"
                     SRow {
                         label: "Reduce motion"
-                        desc: "Turns off the cat's running, battery steam and sparks, and the floating z."
+                        desc: "Turns off the needle sweep, battery steam, sparks and the disc shine."
                         SToggle { checked: Settings.reduceMotion; onToggled: v => Settings.set("reduceMotion", v) }
                     }
                     SRow {
@@ -1283,7 +1327,7 @@ FloatingWindow {
                     }
                     SRow {
                         label: "Reset all settings"
-                        desc: "Back to defaults (orange, cat on, titlebars on)."
+                        desc: "Back to defaults (orange, gauge on, titlebars on)."
                         SBtn { label: win.armed === "reset" ? "Click again" : "Reset"; danger: true; onClicked: win.confirm("reset", () => Settings.resetAll()) }
                     }
                 }

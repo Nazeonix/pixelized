@@ -9,10 +9,12 @@ Item {
     property string label: ""
     property real value: 0              // 0..1
     property bool muted: false
+    property bool alert: false          // draw everything in the accent color
+    property string valueText: ""      // replaces the percent on the right
+    property int segs: 20
 
-    readonly property int segs: 20
     readonly property int lit: muted ? 0 : Math.round(Math.min(1, value) * segs)
-    readonly property color tint: (muted || value > 0.85) ? Theme.accent : Theme.text
+    readonly property color tint: (muted || alert || value > 0.85) ? Theme.accent : Theme.text
 
     width: 310
     height: 62
@@ -38,6 +40,7 @@ Item {
             anchors.centerIn: parent
             rows: osd.iconRows
             tone: osd.tint
+            tone2: osd.alert ? Theme.text : Theme.accent
         }
     }
 
@@ -52,7 +55,7 @@ Item {
     Mono {
         anchors { right: parent.right; rightMargin: 14 }
         y: 7
-        text: osd.muted ? "--" : Math.round(osd.value * 100) + "%"
+        text: osd.valueText !== "" ? osd.valueText : (osd.muted ? "--" : Math.round(osd.value * 100) + "%")
         color: osd.tint
         font.pixelSize: 13
         font.weight: Font.Bold
@@ -71,12 +74,12 @@ Item {
                 id: seg
                 required property int index
                 readonly property bool on: index < osd.lit
-                width: 9
+                width: Math.floor((218 - (osd.segs - 1) * 2) / osd.segs)
                 height: 22
 
                 Rectangle {
                     anchors.fill: parent
-                    color: seg.on ? (seg.index >= 17 ? Theme.accent : Theme.text) : "#1affffff"
+                    color: seg.on ? ((osd.alert || seg.index >= Math.floor(osd.segs * 0.85)) ? Theme.accent : Theme.text) : "#1affffff"
                 }
                 // lit segments get a bright top edge, unlit ones a dark floor: chunky retro bevel
                 Rectangle { visible: seg.on; width: parent.width; height: 2; color: "#99ffffff" }

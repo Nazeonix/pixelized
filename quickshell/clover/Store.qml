@@ -12,6 +12,8 @@ Singleton {
     property bool launcherOpen: false
     property bool settingsOpen: false      // settings window
     property string settingsQuery: ""     // settings search text (lowercase)
+    property int batLevel: 0               // low-battery alert shown: 0 none, 1 low, 2 very low, 3 critical
+    property int batPct: 100
     property bool notifCenter: false       // notification history panel
     property bool titlebars: true          // pixel window titlebars
     property bool startOpen: false          // START button menu

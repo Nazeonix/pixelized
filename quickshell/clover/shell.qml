@@ -23,15 +23,18 @@ ShellRoot {
             Taskbar { screen: scr.modelData }
             AltTab { screen: scr.modelData }
             NotifPopups { screen: scr.modelData }
+            BatteryAlert { screen: scr.modelData }
             NotifCenter { screen: scr.modelData }
 
             VolumeOsdLayer { screen: scr.modelData }
             BrightnessOsdLayer { screen: scr.modelData }
+            StatusOsdLayer { screen: scr.modelData }
         }
     }
 
     TitleBars {}
     Idle { id: idle }
+    BatteryWatch {}
     SettingsApp {}
 
     IpcHandler {
@@ -54,6 +57,14 @@ ShellRoot {
         function titlebars(): void { Store.titlebars = !Store.titlebars }
         function start(): void { Store.startOpen = !Store.startOpen }
         function add(type: string): void { Store.add(type, Hyprland.focusedWorkspace?.id ?? 1) }
+    }
+
+    IpcHandler {
+        target: "battery"
+        function test(level: int): void {
+            Store.batPct = level === 1 ? Settings.batLevel1 : (level === 2 ? Settings.batLevel2 : Settings.batLevel3)
+            Store.batLevel = level
+        }
     }
 
     IpcHandler {

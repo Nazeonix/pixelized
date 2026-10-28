@@ -14,7 +14,7 @@ Singleton {
 
     property string preset: "orange"
     property bool clock24: true
-    property bool cat: true
+    property bool cpuGauge: true
     property bool reduceMotion: false
     property bool highContrast: false
     property bool pixelAvatar: true
@@ -23,6 +23,12 @@ Singleton {
     property string filesCmd: "nautilus"
     property int popupSec: 6
     property string wpScheme: "scheme-tonal-spot"
+
+    // ---- low battery alerts (BatteryWatch.qml) ----
+    property bool batAlerts: true
+    property int batLevel1: 20
+    property int batLevel2: 10
+    property int batLevel3: 5
 
     // ---- idle manager (Idle.qml) ----
     property bool idleEnabled: true
@@ -60,7 +66,7 @@ Singleton {
     readonly property string displayName: userName !== "" ? userName : (Quickshell.env("USER") || "user")
 
     // keys that are stored in the file
-    readonly property var keys: ["preset", "clock24", "cat", "reduceMotion", "highContrast", "pixelAvatar", "userName", "termCmd", "filesCmd", "popupSec", "wpScheme", "idleEnabled", "idleDimSec", "idleDimLevel", "idleLockSec", "idleOffSec", "idleSuspendSec", "idleRespectInhibit", "idleLockBeforeSuspend", "lockCmd", "idleOffCmd", "idleOnCmd", "suspendCmd"]
+    readonly property var keys: ["preset", "clock24", "cpuGauge", "reduceMotion", "highContrast", "pixelAvatar", "userName", "termCmd", "filesCmd", "popupSec", "wpScheme", "batAlerts", "batLevel1", "batLevel2", "batLevel3", "idleEnabled", "idleDimSec", "idleDimLevel", "idleLockSec", "idleOffSec", "idleSuspendSec", "idleRespectInhibit", "idleLockBeforeSuspend", "lockCmd", "idleOffCmd", "idleOnCmd", "suspendCmd"]
 
     function swatch(id) {
         if (id === "wallpaper" && wp.accent !== undefined) return wp.accent
@@ -79,15 +85,16 @@ Singleton {
     // bundles used by the Presets page
     function applyBundle(id) {
         if (presets[id]) { preset = id; if (id === "wallpaper") refreshColors() }
-        else if (id === "minimal") { cat = false; reduceMotion = true; Store.titlebars = false }
-        else if (id === "full") { cat = true; reduceMotion = false; Store.titlebars = true }
+        else if (id === "minimal") { cpuGauge = false; reduceMotion = true; Store.titlebars = false }
+        else if (id === "full") { cpuGauge = true; reduceMotion = false; Store.titlebars = true }
         save()
     }
 
     function resetAll() {
-        preset = "orange"; clock24 = true; cat = true; reduceMotion = false; highContrast = false
+        preset = "orange"; clock24 = true; cpuGauge = true; reduceMotion = false; highContrast = false
         pixelAvatar = true; userName = ""; termCmd = "kitty"; filesCmd = "nautilus"; popupSec = 6
         wpScheme = "scheme-tonal-spot"
+        batAlerts = true; batLevel1 = 20; batLevel2 = 10; batLevel3 = 5
         idleEnabled = true; idleDimSec = 120; idleDimLevel = 15; idleLockSec = 300; idleOffSec = 360; idleSuspendSec = 0
         idleRespectInhibit = true; idleLockBeforeSuspend = true
         lockCmd = "qs -c lock"; idleOffCmd = "hyprctl dispatch dpms off"; idleOnCmd = "hyprctl dispatch dpms on"; suspendCmd = "systemctl suspend"
@@ -244,6 +251,7 @@ Singleton {
             try {
                 const d = JSON.parse(text())
                 root.keys.forEach(k => { if (d[k] !== undefined) root[k] = d[k] })
+                if (d.cpuGauge === undefined && d.cat !== undefined) root.cpuGauge = d.cat      // old setting name
                 if (d.titlebars !== undefined) Store.titlebars = d.titlebars
                 if (d.dnd !== undefined) Notifs.dnd = d.dnd
             } catch (e) { }

@@ -121,152 +121,46 @@ PanelWindow {
         return r.map(a => a.join(""))
     }
 
-    // ---- cpu cat: sleeps when idle, runs faster the busier the cpu is ----
-    property real cpu: 0          // smoothed 0..1
-    property bool catAwake: false
-    property int catFrame: 0
-    property int sleepFrame: 0
+    // ---- cpu speedometer: needle follows the smoothed cpu load ----
+    property real cpu: 0                  // 0..1, smoothed
+    property real gauge: 0                // animated copy used by the needle
     property real _tot: 0
     property real _idle: 0
-    readonly property int catInterval: Math.round(Math.max(40, 150 - cpu * 110))
+    readonly property int gaugeStep: Math.round(gauge * 24)
 
-    readonly property var catPalette: ({
-        "o": "#4a2410", "p": "#ff7a18", "l": "#ffc48a", "d": "#c4560a",
-        "e": "#201008", "w": "#ffffff", "n": "#ffb27a", "h": "#f5f5f5"
+    Behavior on gauge { enabled: !Settings.reduceMotion; NumberAnimation { duration: 650; easing.type: Easing.OutCubic } }
+
+    readonly property var gaugePalette: ({
+        "a": "#c9c9cf", "r": "#ff7a18", "k": "#8c8c94", "n": "#ffffff", "p": "#ff7a18"
     })
-    // 24x14 sprites: two breathing frames when asleep, six run frames
-    readonly property var catSleep: [
-[
-            "........................",
-            "........................",
-            "...............o...o....",
-            "..............opo.opo...",
-            "......ooooooooonpopno...",
-            "...oooppdppdpppppppppo..",
-            "..oppdppdppdppppppppppo.",
-            ".opppppppppppppppppeepoo",
-            ".opppppppppppppppppplnoh",
-            ".opppppppppppppppppplloo",
-            "..oppppppppppppppppppooh",
-            "...ooddddddddddplllllo.o",
-            ".....oooooooooooooooo...",
-            "........................"
-        ],
-[
-            "........................",
-            "........................",
-            "...............o...o....",
-            ".......oooooooopooopo...",
-            "....oooppppppppnpppno...",
-            "...opdppdppdpppppppppo..",
-            "..oppdppdppdppppppppppo.",
-            ".opppppppppppppppppeepoo",
-            ".opppppppppppppppppplnoh",
-            ".opppppppppppppppppplloo",
-            "..oppppppppppppppppppooh",
-            "...ooddddddddddplllllo.o",
-            ".....oooooppppooooooo...",
-            "..........oooo.........."
-        ]
-    ]
-    readonly property var catRun: [
-[
-            "..o............o...o....",
-            ".opo..........opo.opo...",
-            "opo...........onpopno...",
-            "opo..oooooooooooppppo...",
-            ".opoopdppdppdppppppwpo..",
-            "..oppppppppppppppppeppoo",
-            "..oppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "....olllllllllllpooo...o",
-            "...oddppooooooddppo.....",
-            "..oddoppo.....odppo.....",
-            ".ollollo.......olllo....",
-            "..oo.oo.........ooo....."
-        ],
-[
-            "........................",
-            ".o.............o...o....",
-            "opo...........opo.opo...",
-            "opo...........onpopno...",
-            "opo..oooooooooooppppo...",
-            "opooopdppdppdppppppwpo..",
-            ".opppppppppppppppppeppoo",
-            "..oppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "....olllllllllllpooo...o",
-            "...oddppooooooddppo.....",
-            "...ollllo....ollllo.....",
-            "....oooo......oooo......"
-        ],
-[
-            "...............o...o....",
-            "..o...........opo.opo...",
-            ".opo..........onpopno...",
-            "opo..oooooooooooppppo...",
-            "opo.opdppdppdppppppwpo..",
-            "oppopppppppppppppppeppoo",
-            ".ooppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "....olllllllllllpooo...o",
-            "....oddppooooddppo......",
-            "....oddppo..oddppo......",
-            "....ollllo..ollllo......",
-            ".....oooo....oooo......."
-        ],
-[
-            ".o.............o...o....",
-            "opo...........opo.opo...",
-            "opo...........onpopno...",
-            "opo..oooooooooooppppo...",
-            "opooopdppdppdppppppwpo..",
-            ".opppppppppppppppppeppoo",
-            "..oppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "....olllllllllllpooo...o",
-            ".....oddppooddppo.......",
-            "......odppoddoppo.......",
-            ".......ollllollo........",
-            "........oooo.oo........."
-        ],
-[
-            "........................",
-            "..o............o...o....",
-            ".opo..........opo.opo...",
-            "opo...........onpopno...",
-            "opo..oooooooooooppppo...",
-            ".opoopdppdppdppppppwpo..",
-            "..oppppppppppppppppeppoo",
-            "..oppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "....olllllllllllpooo...o",
-            ".....oddppooddppo.......",
-            ".....olllloollllo.......",
-            "......oooo..oooo........"
-        ],
-[
-            "........................",
-            ".o.............o...o....",
-            "opo...........opo.opo...",
-            "opo...........onpopno...",
-            "opo..oooooooooooppppo...",
-            "opooopdppdppdppppppwpo..",
-            ".opppppppppppppppppeppoo",
-            "..oppppppppppppppppplnoh",
-            "..oppppppppppplppppplloo",
-            "...oppppppppppllppppoooh",
-            "...odlllllllllllpooo...o",
-            "...oddppooooooddppo.....",
-            "..ollollo.....olllo.....",
-            "...oo.oo.......ooo......"
-        ]
-    ]
+
+    // 17x10 pixel dial: arc (orange in the last quarter), ticks, needle, pivot
+    function gaugeRows(v) {
+        const W = 17, H = 10, cx = 8, cy = 8
+        const g = []
+        for (let y = 0; y < H; y++) g.push(new Array(W).fill("."))
+        for (let y = 0; y <= cy; y++)
+            for (let x = 0; x < W; x++) {
+                const dx = x - cx, dy = cy - y
+                const d = Math.sqrt(dx * dx + dy * dy)
+                if (d >= 6.3 && d <= 8.2) {
+                    const f = 1 - Math.atan2(dy, dx) / Math.PI        // 0 left .. 1 right
+                    g[y][x] = f > 0.78 ? "r" : "a"
+                }
+            }
+        for (let k = 0; k <= 4; k++) {
+            const a = Math.PI * (1 - k / 4)
+            const x = Math.round(cx + 5.0 * Math.cos(a)), y = Math.round(cy - 5.0 * Math.sin(a))
+            if (g[y][x] === ".") g[y][x] = k === 4 ? "r" : "k"
+        }
+        const ang = Math.PI * (1 - Math.max(0, Math.min(1, v)))
+        for (let t = 0.5; t <= 5.6; t += 0.5) {
+            const x = Math.round(cx + t * Math.cos(ang)), y = Math.round(cy - t * Math.sin(ang))
+            if (y >= 0 && y < H && x >= 0 && x < W) g[y][x] = "n"
+        }
+        g[cy][cx - 1] = "p"; g[cy][cx] = "p"; g[cy][cx + 1] = "p"; g[cy + 1][cx] = "p"
+        return g.map(r => r.join(""))
+    }
 
     FileView {
         id: stat
@@ -278,26 +172,13 @@ PanelWindow {
             if (win._tot > 0 && tot > win._tot) {
                 const u = 1 - (idle - win._idle) / (tot - win._tot)
                 win.cpu = win.cpu * 0.5 + Math.max(0, Math.min(1, u)) * 0.5
-                if (win.cpu > 0.12 && !Settings.reduceMotion) win.catAwake = true
-                else if (win.cpu < 0.06 || Settings.reduceMotion) win.catAwake = false
+                win.gauge = win.cpu
             }
             win._tot = tot
             win._idle = idle
         }
     }
-    Timer { interval: 1000; repeat: true; running: true; triggeredOnStart: true; onTriggered: stat.reload() }
-    Timer {
-        interval: 900
-        repeat: true
-        running: !win.catAwake && !Settings.reduceMotion
-        onTriggered: win.sleepFrame = (win.sleepFrame + 1) % 2
-    }
-    Timer {
-        interval: win.catInterval
-        repeat: true
-        running: win.catAwake
-        onTriggered: win.catFrame = (win.catFrame + 1) % win.catRun.length
-    }
+    Timer { interval: 1000; repeat: true; running: Settings.cpuGauge; triggeredOnStart: true; onTriggered: stat.reload() }
 
     // ---- workspace discs: bright + halo = chosen, star = other workspace with windows, cracked = empty ----
     readonly property var discPlain: [
@@ -694,39 +575,18 @@ PanelWindow {
                 MouseArea { anchors.fill: parent; onClicked: Settings.idleKeepAwake = false }
             }
 
-            // cpu cat
+            // cpu speedometer
             Item {
-                visible: Settings.cat
+                visible: Settings.cpuGauge
                 anchors.verticalCenter: parent.verticalCenter
-                width: cp.width
-                height: cp.height
+                width: gp.width
+                height: gp.height
 
                 Pix {
-                    id: cp
-                    palette: win.catPalette
-                    rows: win.catAwake ? win.catRun[win.catFrame] : win.catSleep[win.sleepFrame]
-                }
-
-                // sleeping "z"
-                Pix {
-                    id: zz
-                    x: 34
-                    rows: ["###", ".#.", "###"]
-                    tone: "#f5f5f5"
-                    opacity: 0
-                    visible: !win.catAwake && !Settings.reduceMotion
-
-                    SequentialAnimation {
-                        running: !win.catAwake && !Settings.reduceMotion
-                        loops: Animation.Infinite
-                        ParallelAnimation {
-                            NumberAnimation { target: zz; property: "y"; from: 0; to: -9; duration: 2400 }
-                            SequentialAnimation {
-                                NumberAnimation { target: zz; property: "opacity"; from: 0; to: 0.9; duration: 600 }
-                                NumberAnimation { target: zz; property: "opacity"; to: 0; duration: 1800 }
-                            }
-                        }
-                    }
+                    id: gp
+                    px: 2
+                    rows: win.gaugeRows(win.gaugeStep / 24)
+                    palette: win.gaugePalette
                 }
             }
 

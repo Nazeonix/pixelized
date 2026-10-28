@@ -33,7 +33,7 @@ hl.window_rule({
 
 hl.layer_rule({
   name = "orchid-glass",
-  match = { namespace = "^(orchid-.*|clover|clover-launcher|clover-start|clover-bar|clover-titlebar|clover-notify|clover-notifcenter|clover-vol|clover-bri|clover-alttab)$" },
+  match = { namespace = "^(orchid-.*|clover|clover-launcher|clover-start|clover-bar|clover-titlebar|clover-battery|clover-notify|clover-notifcenter|clover-vol|clover-bri|clover-alttab)$" },
   blur = true,
   blur_popups = true,
   ignore_alpha = 0.15,
