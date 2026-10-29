@@ -280,6 +280,61 @@ PanelWindow {
         Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = " + target + " })"])
     }
 
+    // ---- wifi and bluetooth icons ----
+    readonly property var btRows: [
+        "....#....",
+        "....##...",
+        "....#.##.",
+        "#...#...#",
+        ".##.#..#.",
+        "...####..",
+        "....#....",
+        "...####..",
+        ".##.#..#.",
+        "#...#...#",
+        "....#.##.",
+        "....##...",
+        "....#...."
+    ]
+    readonly property var wifiPalette: ({
+        "w": "#f5f5f5", "a": Theme.accent, "d": "#3d3d44", "m": "#6a6a74", "k": "#c9c9cf"
+    })
+
+    // 16x12 pixel wifi fan: three arcs and a dot (signal 1..4 lights dot, then arcs).
+    // level -1: radio off (grey x), 0: not connected (orange x), secured networks get a small lock.
+    function wifiRows(level, secured) {
+        const W = 16, H = 12
+        const radii = [3.7, 6.5, 9.3]
+        const g = []
+        for (let y = 0; y < H; y++) g.push(new Array(W).fill("."))
+        const lit = level <= 0 ? 0 : level - 1
+        const col = level <= 1 ? "a" : "w"
+        for (let y = 0; y < H; y++)
+            for (let x = 0; x < W; x++) {
+                const dx = x - 7.5, dy = 11 - y
+                const d = Math.sqrt(dx * dx + dy * dy)
+                const ang = Math.atan2(dy, dx) * 180 / Math.PI
+                if (ang < 42 || ang > 138) continue
+                for (let i = 0; i < 3; i++)
+                    if (Math.abs(d - radii[i]) < 0.62) g[y][x] = i < lit ? col : "d"
+            }
+        const dot = level <= 0 ? "d" : col
+        g[10][7] = dot; g[10][8] = dot; g[11][7] = dot; g[11][8] = dot
+        if (level <= 0) {
+            const c = level < 0 ? "m" : "a"
+            const xm = ["#.#", ".#.", "#.#"]
+            for (let j = 0; j < 3; j++)
+                for (let i = 0; i < 3; i++)
+                    if (xm[j][i] === "#") g[H - 3 + j][W - 3 + i] = c
+        } else if (secured) {
+            const lk = [".#.", "#.#", "###", "###"]
+            for (let j = 0; j < 4; j++)
+                for (let i = 0; i < 3; i++)
+                    if (lk[j][i] === "#") g[H - 4 + j][W - 3 + i] = "k"
+        }
+        return g.map(r => r.join(""))
+    }
+
     function layoutCode(name) {
         const n = name.toLowerCase()
         if (n.startsWith("english")) return "EN"
@@ -587,6 +642,57 @@ PanelWindow {
                     px: 2
                     rows: win.gaugeRows(win.gaugeStep / 24)
                     palette: win.gaugePalette
+                }
+            }
+
+            // wifi: click = network settings, middle click = radio on/off
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                width: wf.width + 6
+                height: wf.height + 6
+
+                Rectangle { anchors.fill: parent; color: wa.containsMouse ? "#14ffffff" : "transparent" }
+                Pix {
+                    id: wf
+                    anchors.centerIn: parent
+                    rows: win.wifiRows(Net.wifiLevel, Net.secure)
+                    palette: win.wifiPalette
+                }
+                MouseArea {
+                    id: wa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.MiddleButton) Net.toggleWifi()
+                        else { Store.settingsPage = "network"; Store.settingsOpen = true }
+                    }
+                }
+            }
+
+            // bluetooth: accent when a device is connected, white when on, dim when off
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                width: btIcon.width + 10
+                height: btIcon.height + 6
+
+                Rectangle { anchors.fill: parent; color: ba.containsMouse ? "#14ffffff" : "transparent" }
+                Pix {
+                    id: btIcon
+                    anchors.centerIn: parent
+                    rows: win.btRows
+                    tone: Net.btConnected > 0 ? Theme.accent : (Net.btOn ? Theme.text : Theme.dim)
+                    opacity: Net.btOn ? 1 : 0.55
+                }
+                MouseArea {
+                    id: ba
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.MiddleButton) Net.toggleBt()
+                        else { Store.settingsPage = "network"; Store.settingsOpen = true }
+                    }
                 }
             }
 

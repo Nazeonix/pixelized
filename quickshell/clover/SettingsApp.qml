@@ -68,6 +68,13 @@ FloatingWindow {
 
     onPageChanged: refresh()
 
+    Connections {
+        target: Store
+        function onSettingsPageChanged() {
+            if (Store.settingsPage !== "") { win.page = Store.settingsPage; Store.settingsPage = "" }
+        }
+    }
+
     function kv(t) {
         const o = {}
         t.split("\n").forEach(l => {

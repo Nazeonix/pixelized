@@ -1,20 +1,20 @@
 {
   "usage": {
-    "space.bigrat.mocktail": 36,
-    "brave-origin": 26,
-    "org.kde.krita": 3,
-    "io.github.kolunmi.Bazaar": 3,
+    "space.bigrat.mocktail": 39,
+    "brave-origin": 42,
+    "org.kde.krita": 4,
+    "io.github.kolunmi.Bazaar": 4,
     "spotify-launcher": 2,
     "org.prismlauncher.PrismLauncher": 1,
-    "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default": 20,
+    "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default": 32,
     "com.orama_interactive.Pixelorama": 5,
-    "steam": 10,
+    "steam": 12,
     "Hades": 1,
-    "firefox": 2,
-    "dev.vencord.Vesktop": 3,
+    "firefox": 8,
+    "dev.vencord.Vesktop": 4,
     "org.gnome.Nautilus": 2,
     "yazi": 1,
-    "kitty": 2,
+    "kitty": 3,
     "ai.storyteller.artcraft-launcher": 5,
     "org.upscayl.Upscayl": 3,
     "org.strawberrymusicplayer.strawberry": 1,
@@ -22,7 +22,8 @@
     "libreoffice-base": 1,
     "ai.storyteller.wordcraft": 1,
     "com.github.PintaProject.Pinta": 1,
-    "org.localsend.localsend_app": 1
+    "org.localsend.localsend_app": 2,
+    "io.github.luohoa97.Cordial": 3
   },
   "pinned": []
 }

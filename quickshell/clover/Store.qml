@@ -10,6 +10,7 @@ Singleton {
     property bool editing: false
     property bool hidden: false     // focus mode
     property bool launcherOpen: false
+    property string settingsPage: ""      // set before opening settings to jump to a page
     property bool settingsOpen: false      // settings window
     property string settingsQuery: ""     // settings search text (lowercase)
     property int batLevel: 0               // low-battery alert shown: 0 none, 1 low, 2 very low, 3 critical
