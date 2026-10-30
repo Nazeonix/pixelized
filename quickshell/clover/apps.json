@@ -1,16 +1,16 @@
 {
   "usage": {
-    "space.bigrat.mocktail": 39,
-    "brave-origin": 42,
+    "space.bigrat.mocktail": 43,
+    "brave-origin": 45,
     "org.kde.krita": 4,
     "io.github.kolunmi.Bazaar": 4,
     "spotify-launcher": 2,
     "org.prismlauncher.PrismLauncher": 1,
-    "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default": 32,
+    "brave-fmpnliohjhemenmnlpbfagaolkdacoja-Default": 33,
     "com.orama_interactive.Pixelorama": 5,
     "steam": 12,
     "Hades": 1,
-    "firefox": 8,
+    "firefox": 11,
     "dev.vencord.Vesktop": 4,
     "org.gnome.Nautilus": 2,
     "yazi": 1,
@@ -23,7 +23,7 @@
     "ai.storyteller.wordcraft": 1,
     "com.github.PintaProject.Pinta": 1,
     "org.localsend.localsend_app": 2,
-    "io.github.luohoa97.Cordial": 3
+    "io.github.luohoa97.Cordial": 6
   },
   "pinned": []
 }

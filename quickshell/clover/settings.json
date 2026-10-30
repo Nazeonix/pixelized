@@ -1,8 +1,8 @@
 {
   "preset": "wallpaper",
   "clock24": true,
-  "cpuGauge": true,
-  "reduceMotion": false,
+  "cpuGauge": false,
+  "reduceMotion": true,
   "highContrast": false,
   "pixelAvatar": true,
   "userName": "",
@@ -26,6 +26,6 @@
   "idleOffCmd": "hyprctl dispatch dpms off",
   "idleOnCmd": "hyprctl dispatch dpms on",
   "suspendCmd": "systemctl suspend",
-  "titlebars": true,
+  "titlebars": false,
   "dnd": false
 }
